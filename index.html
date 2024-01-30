@@ -1,45 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        background-color: #000;
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #000;
+    }
 
-      #synthwaveEmblem {
-        width: 300px;
-        height: 300px;
-        border-radius: 50%;
-        background-color: transparent;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        border: 2px solid #fff;
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
-      }
-    </style>
-    <title>Audio Reactive Wallpaper</title>
-  </head>
-  <body>
-    <div id="synthwaveEmblem"></div>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const synthwaveEmblem = document.getElementById("synthwaveEmblem");
+    #synthwaveEmblem {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background-color: transparent;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border: 2px solid #fff;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+  </style>
+  <title>Audio Reactive Wallpaper</title>
+</head>
+<body>
+  <div id="synthwaveEmblem"></div>
+  <button id="startButton">Start Audio</button>
 
-        const audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.getElementById('startButton').addEventListener('click', function () {
+        const synthwaveEmblem = document.getElementById('synthwaveEmblem');
 
-        navigator.mediaDevices
-          .getUserMedia({ audio: true })
+        // Create an AudioContext after a user interaction
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
           .then(function (stream) {
             const source = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
             source.connect(analyser);
 
             const bufferLength = analyser.frequencyBinCount;
@@ -49,13 +51,12 @@
               analyser.getByteFrequencyData(dataArray);
 
               // Calculate the average amplitude
-              const amplitude =
-                dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
+              const amplitude = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
 
               // Use amplitude to modify the size of the emblem
-              const newSize = 200 + amplitude * 2;
-              synthwaveEmblem.style.width = newSize + "px";
-              synthwaveEmblem.style.height = newSize + "px";
+              const newSize = 100 + amplitude * 2;
+              synthwaveEmblem.style.width = newSize + 'px';
+              synthwaveEmblem.style.height = newSize + 'px';
 
               requestAnimationFrame(renderFrame);
             }
@@ -63,9 +64,10 @@
             renderFrame();
           })
           .catch(function (err) {
-            console.error("Error accessing microphone:", err);
+            console.error('Error accessing microphone:', err);
           });
       });
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
