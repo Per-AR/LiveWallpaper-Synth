@@ -10,29 +10,32 @@
       background-color: #000;
     }
 
-    #synthwaveEmblem {
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background-color: transparent;
+    #synthwaveContainer {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      border: 2px solid #fff;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+    }
+
+    .synthwaveLine {
+      position: absolute;
+      width: 2px;
+      height: 50px;
+      background-color: transparent;
+      transform-origin: bottom;
+      transition: background-color 0.2s;
     }
   </style>
   <title>Audio Reactive Wallpaper</title>
 </head>
 <body>
-  <div id="synthwaveEmblem"></div>
+  <div id="synthwaveContainer"></div>
   <button id="startButton">Start Audio</button>
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       document.getElementById('startButton').addEventListener('click', function () {
-        const synthwaveEmblem = document.getElementById('synthwaveEmblem');
+        const synthwaveContainer = document.getElementById('synthwaveContainer');
 
         // Create an AudioContext after a user interaction
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -47,16 +50,34 @@
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
 
+            function createSynthwaveLines() {
+              for (let i = 0; i < bufferLength; i++) {
+                const synthwaveLine = document.createElement('div');
+                synthwaveLine.className = 'synthwaveLine';
+                synthwaveContainer.appendChild(synthwaveLine);
+              }
+            }
+
+            createSynthwaveLines();
+
             function renderFrame() {
               analyser.getByteFrequencyData(dataArray);
 
-              // Calculate the average amplitude
-              const amplitude = dataArray.reduce((acc, val) => acc + val, 0) / bufferLength;
+              const lines = document.getElementsByClassName('synthwaveLine');
+              const angleIncrement = (Math.PI * 2) / bufferLength;
 
-              // Use amplitude to modify the size of the emblem
-              const newSize = 100 + amplitude * 2;
-              synthwaveEmblem.style.width = newSize + 'px';
-              synthwaveEmblem.style.height = newSize + 'px';
+              for (let i = 0; i < bufferLength; i++) {
+                const amplitude = dataArray[i] / 128.0; // Normalize amplitude to a range between 0 and 1
+                const line = lines[i];
+
+                const scale = 1 + amplitude * 2;
+                line.style.transform = `rotate(${i * angleIncrement}rad) scaleY(${scale})`;
+
+                // Change color based on amplitude
+                const hue = (i / bufferLength) * 360;
+                const lightness = 50 + amplitude * 50;
+                line.style.backgroundColor = `hsl(${hue}, 100%, ${lightness}%)`;
+              }
 
               requestAnimationFrame(renderFrame);
             }
